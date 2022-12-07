@@ -1,0 +1,86 @@
+SQL>create database bank;
+
+Database created.
+SQL> use bank;
+
+SQL> create table accounts(accountnumber number(10),balance float(10));
+
+Table created.
+
+SQL> insert into accounts values(101,10000.23);
+
+1 row created.
+
+SQL> insert into accounts values(102,800000);
+
+1 row created.
+
+SQL> insert into accounts values(103,1000);
+
+1 row created.
+
+SQL> insert into accounts values(104,0);
+
+1 row created.
+
+SQL> select * from accounts;
+
+ACCOUNTNUMBER    BALANCE
+------------- ----------
+          101      10000
+          102     800000
+          103       1000
+          104          0
+
+SQL> create or replace procedure creditAmount
+  2  (
+  3  accountNo accounts.accountnumber %type,
+  4  amount accounts.balance%type,
+  5  transactionType varchar2
+  6  )
+  7  AS
+  8  oldBalance number;
+  9  newBalance number;
+ 10  BEGIN
+ 11  select balance into oldBalance from accounts where accountnumber = accountNo;
+ 12   IF (lower (transactionType)= 'credit') THEN
+ 13   newBalance := oldBalance + amount;
+ 14  END IF;
+ 15  IF(lower (transactionType)='debit') THEN
+ 16   newBalance:=oldBalance-amount;
+ 17  END IF;
+ 18  update accounts set balance = newBalance where accountnumber =accountNo;
+ 19  commit;
+ 20  EXCEPTION WHEN  NO_DATA_FOUND THEN
+ 21  INSERT INTO accounts(accountnumber,balance) values(accountNo,amount);
+ 22  WHEN OTHERS THEN
+ 23  ROLLBACK;
+ 24  END;
+ 25  /
+
+Procedure created.
+
+SQL>
+SQL> DECLARE
+  2  accountNo number;
+  3  amount number;
+  4  transactionType varchar2(50);
+  5  BEGIN
+  6  accountNo:= 1000105;
+  7  Amount := 1000;
+  8  transactionType :='credit';
+  9  creditamount (accountNo,amount,transactionType);
+ 10  END;
+ 11  /
+
+PL/SQL procedure successfully completed.
+
+SQL> select * from accounts;
+
+ACCOUNTNUMBER    BALANCE
+------------- ----------
+          101      10000
+          102     800000
+          103       1000
+          104          0
+      1000105       1000
